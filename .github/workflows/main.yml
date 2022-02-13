@@ -14,3 +14,4 @@ jobs:
         server: ftp.alnlabs.com
         username: learn2code@alnlabs.com
         password: ${{ secrets.ftp_password }}
+        server-dir: /home/alnlabsc/alnlabs.com/learn2code
