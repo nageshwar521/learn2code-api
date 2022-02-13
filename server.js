@@ -16,6 +16,9 @@ const io = socketIo(server).sockets;
 app.use(express.json());
 app.use(cors());
 
+app.use("/api", (req, res) => {
+  res.send("Api is working");
+});
 app.use("/api/auth", authRoutes);
 app.use("/api/users", verifyToken, usersRoutes);
 
