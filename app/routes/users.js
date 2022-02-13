@@ -1,4 +1,5 @@
 const express = require("express");
+const typeorm = require("typeorm");
 const {
   MONGO_DB,
   USERS_TABLE,
@@ -6,7 +7,6 @@ const {
   DROPBOX_BASE_URL,
   DROPBOX_BASE_PATH,
 } = require("../constants");
-const { mongoInstance } = require("../db/connection");
 const { uploadFile } = require("../middlewares/upload");
 const {
   userNotFound,
@@ -24,11 +24,12 @@ const { errorResponse, successResponse } = require("../utils");
 
 const router = express.Router();
 
+const dbConnection = typeorm.getConnection();
+
 router.get("/", async (req, res) => {
-  const db = mongoInstance.db(MONGO_DB);
-  const usersCollection = db.collection(USERS_TABLE);
   try {
-    const users = await usersCollection.find({});
+    const users = await dbConnection.createQueryBuilder("users").getMany();
+
     res.status(200).send(
       successResponse({
         message: getI18nMessage(getUsersSuccess),
@@ -44,16 +45,17 @@ router.get("/", async (req, res) => {
 
 router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
-  const db = mongoInstance.db(MONGO_DB);
-  const usersCollection = db.collection(USERS_TABLE);
+
   try {
-    const user = await usersCollection.findOne({ id: userId });
+    const user = await dbConnection
+      .createQueryBuilder("users")
+      .where("user.id = :id", { id: userId });
     if (!user) {
       return res
         .status(404)
         .send(errorResponse({ message: getI18nMessage(userNotFound) }));
     }
-    const { password, _id, ...userDetails } = user;
+    const { password, ...userDetails } = user;
     res.status(200).send(
       successResponse({
         message: getI18nMessage(getUserSuccess),
@@ -70,34 +72,30 @@ router.get("/:userId", async (req, res) => {
 router.use(uploadFile).post("/:userId", async (req, res) => {
   const userId = req.params.userId;
   const data = req.body;
-  const db = mongoInstance.db(MONGO_DB);
-  const usersCollection = db.collection(USERS_TABLE);
+  const user = await dbConnection
+    .createQueryBuilder("users")
+    .where("user.id = :id", { id: userId })
+    .execute();
 
-  const user = await usersCollection.findOne({
-    id: userId,
-  });
   if (!user) {
     return res
       .status(404)
       .send(errorResponse({ message: getI18nMessage(userNotFound) }));
   }
   try {
-    const user = await usersCollection.updateOne(
-      {
-        id: userId,
-      },
-      {
-        $set: {
-          ...data,
-          imagePath: `${DROPBOX_BASE_URL}${DROPBOX_BASE_PATH}${req.uploadedFile.path_lower}`,
-          file: req.uploadedFile,
-        },
-      }
-    );
+    const result = await getConnection()
+      .createQueryBuilder()
+      .update("users")
+      .set({
+        ...data,
+        profile_img_url: `${DROPBOX_BASE_URL}${DROPBOX_BASE_PATH}${req.uploadedFile.path_lower}`,
+      })
+      .where("id = :id", { id: userId })
+      .execute();
     res.status(200).send(
       successResponse({
         message: getI18nMessage(userUpdateSuccess),
-        data: { user },
+        data: { result },
       })
     );
   } catch (error) {
@@ -109,21 +107,22 @@ router.use(uploadFile).post("/:userId", async (req, res) => {
 
 router.delete("/:userId", async (req, res) => {
   const userId = req.params.userId;
-  const db = mongoInstance.db(MONGO_DB);
-  const usersCollection = db.collection(USERS_TABLE);
 
-  const user = await usersCollection.findOne({
-    id: userId,
-  });
+  const user = await dbConnection
+    .createQueryBuilder("users")
+    .where("user.id = :id", { id: userId })
+    .execute();
   if (!user) {
     return res
       .status(404)
       .send(errorResponse({ message: getI18nMessage(userNotFound) }));
   }
   try {
-    const deleteResult = await usersCollection.deleteOne({
-      id: userId,
-    });
+    const deleteResult = await dbConnection
+      .createQueryBuilder("users")
+      .delete()
+      .where("id = :id", { id: userId })
+      .execute();
     res.status(200).send(
       successResponse({
         message: getI18nMessage(userDeleteSuccess),

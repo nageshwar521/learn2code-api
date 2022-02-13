@@ -1,22 +1,12 @@
-const { MONGO_URI } = require("../constants");
-const MongoClient = require("mongodb").MongoClient;
+const { mysqlConnection } = require("./mysqldb");
 
-const mongoInstance = new MongoClient(MONGO_URI, {
-  useNewUrlParser: true,
-  useCreateIndex: true,
-  useUnifiedTopology: true,
-  useFindAndModify: false,
-});
-
-const initDB = () => {
-  mongoInstance
-    .connect()
-    .then(() => {
-      console.log("MongoDB connection success...!");
-    })
-    .catch((error) => {
-      console.log("MongoDB connection error...!", error);
-    });
+const initDB = async () => {
+  try {
+    await mysqlConnection.connect();
+    console.log("Connection success");
+  } catch (error) {
+    console.error("Error connecting: " + err.stack);
+  }
 };
 
-module.exports = { initDB, mongoInstance };
+module.exports = { initDB };

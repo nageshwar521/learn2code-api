@@ -2,13 +2,8 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid");
 const bcrypt = require("bcrypt");
-const {
-  MONGO_DB,
-  USERS_TABLE,
-  ACCESS_TOKEN_SECRET,
-  REFRESH_TOKEN_SECRET,
-} = require("../constants");
-const { mongoInstance } = require("../db/connection");
+const typeorm = require("typeorm");
+const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require("../constants");
 const {
   userNotFound,
   userPasswordNotMatch,
@@ -28,14 +23,14 @@ let refreshTokens = [];
 
 const router = express.Router();
 
+const dbConnection = typeorm.getConnection();
+
 router.post("/login", async (req, res) => {
   const data = req.body;
-  const db = mongoInstance.db(MONGO_DB);
-  const usersCollection = db.collection(USERS_TABLE);
+  const user = await dbConnection
+    .createQueryBuilder("users")
+    .where("user.email = :email", { email: data.email });
 
-  const user = await usersCollection.findOne({
-    $or: [{ email: data.username }, { username: data.username }],
-  });
   if (!user) {
     return res
       .status(404)
@@ -57,7 +52,7 @@ router.post("/login", async (req, res) => {
       { username: data.username },
       REFRESH_TOKEN_SECRET
     );
-    const { password, _id, ...userDetails } = user;
+    const { password, ...userDetails } = user;
     res.status(200).send(
       successResponse({
         message: getI18nMessage(loginSuccess),
@@ -73,8 +68,6 @@ router.post("/login", async (req, res) => {
 
 router.post("/register", async (req, res) => {
   const data = req.body;
-  const db = mongoInstance.db(MONGO_DB);
-  const usersCollection = db.collection(USERS_TABLE);
 
   if (!(data.username && data.email && data.password)) {
     const missingFieldMessage = getI18nMessage(missingRequiredFields);
@@ -92,9 +85,10 @@ router.post("/register", async (req, res) => {
       return res.status(400).send(errorResponse({ message: requiredMessage }));
     }
   }
-  const user = await usersCollection.findOne({
-    $or: [{ email: data.email }, { username: data.username }],
-  });
+  const user = await dbConnection
+    .createQueryBuilder("users")
+    .where("user.email = :email", { email: data.email });
+
   if (user) {
     return res
       .status(400)
@@ -102,11 +96,16 @@ router.post("/register", async (req, res) => {
   }
   try {
     const hash = await bcrypt.hash(data.password, 10);
-    const result = await usersCollection.insertOne({
-      ...data,
-      id: uuid.v4(),
-      password: hash,
-    });
+    const result = await getConnection()
+      .createQueryBuilder()
+      .insert()
+      .into("users")
+      .values({
+        ...data,
+        id: uuid.v4(),
+        password: hash,
+      })
+      .execute();
     res.status(201).send(
       successResponse({
         message: getI18nMessage(registerSuccess),
