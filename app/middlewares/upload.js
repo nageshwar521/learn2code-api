@@ -1,5 +1,3 @@
-const request = require("request");
-const fs = require("fs");
 const path = require("path");
 const dropboxV2Api = require("dropbox-v2-api");
 const { DBX_ACCESS_TOKEN } = require("../constants");

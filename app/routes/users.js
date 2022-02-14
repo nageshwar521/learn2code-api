@@ -1,12 +1,6 @@
 const express = require("express");
 const typeorm = require("typeorm");
-const {
-  MONGO_DB,
-  USERS_TABLE,
-  ACCESS_TOKEN_SECRET,
-  DBX_GET_TEMPORARY_LINK_PATH,
-  DBX_API_DOMAIN,
-} = require("../constants");
+const { DBX_GET_TEMPORARY_LINK_PATH, DBX_API_DOMAIN } = require("../constants");
 const { uploadFile } = require("../middlewares/upload");
 const {
   userNotFound,

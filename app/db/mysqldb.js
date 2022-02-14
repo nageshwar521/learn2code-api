@@ -7,7 +7,10 @@ const mysqlConnection = connectionManager.create({
   port: 3306,
   username: "root",
   password: "Anitha@521",
-  database: "learn2code_schema",
+  database:
+    process.env.NODE_ENV === "development"
+      ? "learn2code_schema"
+      : "alnlabsc_learn2code",
 });
 
 module.exports = { mysqlConnection };
