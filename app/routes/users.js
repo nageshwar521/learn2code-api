@@ -4,8 +4,8 @@ const {
   MONGO_DB,
   USERS_TABLE,
   ACCESS_TOKEN_SECRET,
-  DROPBOX_BASE_URL,
-  DROPBOX_BASE_PATH,
+  DBX_GET_TEMPORARY_LINK_PATH,
+  DBX_API_DOMAIN,
 } = require("../constants");
 const { uploadFile } = require("../middlewares/upload");
 const {
@@ -88,7 +88,7 @@ router.use(uploadFile).post("/:userId", async (req, res) => {
       .update("users")
       .set({
         ...data,
-        profile_img_url: `${DROPBOX_BASE_URL}${DROPBOX_BASE_PATH}${req.uploadedFile.path_lower}`,
+        profile_img_url: `${DBX_API_DOMAIN}${DBX_GET_TEMPORARY_LINK_PATH}${req.uploadedFile.path_lower}`,
       })
       .where("id = :id", { id: userId })
       .execute();
