@@ -27,22 +27,23 @@ const dbConnection = typeorm.getConnection();
 
 router.post("/login", async (req, res) => {
   const data = req.body;
-  const user = await dbConnection
-    .createQueryBuilder("users")
-    .where("user.email = :email", { email: data.email });
 
-  if (!user) {
-    return res
-      .status(404)
-      .send(errorResponse({ message: getI18nMessage(userNotFound) }));
-  }
-  const validPassword = await bcrypt.compare(data.password, user.password);
-  if (!validPassword) {
-    return res
-      .status(401)
-      .send(errorResponse({ message: getI18nMessage(userPasswordNotMatch) }));
-  }
   try {
+    const user = await dbConnection
+      .createQueryBuilder("users")
+      .where("user.email = :email", { email: data.email });
+
+    if (!user) {
+      return res
+        .status(404)
+        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
+    }
+    const validPassword = await bcrypt.compare(data.password, user.password);
+    if (!validPassword) {
+      return res
+        .status(401)
+        .send(errorResponse({ message: getI18nMessage(userPasswordNotMatch) }));
+    }
     const accessToken = jwt.sign(
       { username: data.username },
       ACCESS_TOKEN_SECRET,
@@ -69,13 +70,10 @@ router.post("/login", async (req, res) => {
 router.post("/register", async (req, res) => {
   const data = req.body;
 
-  if (!(data.username && data.email && data.password)) {
+  if (!(data.email && data.password)) {
     const missingFieldMessage = getI18nMessage(missingRequiredFields);
     let requiredMessage = "";
-    if (!data.username) {
-      requiredMessage = missingFieldMessage.replace("{field}", "Username");
-      return res.status(400).send(errorResponse({ message: requiredMessage }));
-    }
+
     if (!data.email) {
       requiredMessage = missingFieldMessage.replace("{field}", "Email");
       return res.status(400).send(errorResponse({ message: requiredMessage }));
@@ -85,16 +83,16 @@ router.post("/register", async (req, res) => {
       return res.status(400).send(errorResponse({ message: requiredMessage }));
     }
   }
-  const user = await dbConnection
-    .createQueryBuilder("users")
-    .where("user.email = :email", { email: data.email });
-
-  if (user) {
-    return res
-      .status(400)
-      .send(errorResponse({ message: getI18nMessage(userExists) }));
-  }
   try {
+    const user = await dbConnection
+      .createQueryBuilder("users")
+      .where("user.email = :email", { email: data.email });
+
+    if (user) {
+      return res
+        .status(400)
+        .send(errorResponse({ message: getI18nMessage(userExists) }));
+    }
     const hash = await bcrypt.hash(data.password, 10);
     const result = await getConnection()
       .createQueryBuilder()
@@ -122,41 +120,54 @@ router.post("/register", async (req, res) => {
 router.post("/token", (req, res) => {
   const { token } = req.body;
 
-  if (!token) {
-    return res
-      .status(404)
-      .send(errorResponse({ message: getI18nMessage(noToken) }));
-  }
-
-  jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
-    if (err) {
+  try {
+    if (!token) {
       return res
-        .status(500)
-        .send(errorResponse({ message: getI18nMessage(serverError) }));
+        .status(404)
+        .send(errorResponse({ message: getI18nMessage(noToken) }));
     }
 
-    const accessToken = jwt.sign({ username }, ACCESS_TOKEN_SECRET, {
-      expiresIn: "20m",
-    });
+    jwt.verify(token, REFRESH_TOKEN_SECRET, (err, user) => {
+      if (err) {
+        return res
+          .status(500)
+          .send(errorResponse({ message: getI18nMessage(serverError) }));
+      }
 
-    res.status(200).send(
-      successResponse({
-        message: getI18nMessage(getRefreshTokenSuccess),
-        data: { accessToken },
-      })
-    );
-  });
+      const accessToken = jwt.sign({ username }, ACCESS_TOKEN_SECRET, {
+        expiresIn: "20m",
+      });
+
+      res.status(200).send(
+        successResponse({
+          message: getI18nMessage(getRefreshTokenSuccess),
+          data: { accessToken },
+        })
+      );
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .send(errorResponse({ message: getI18nMessage(serverError) }));
+  }
 });
 
 router.post("/logout", (req, res) => {
   const { token } = req.body;
-  refreshTokens = refreshTokens.filter((t) => t !== token);
 
-  res.status(200).send(
-    successResponse({
-      message: getI18nMessage(logoutSuccess),
-    })
-  );
+  try {
+    refreshTokens = refreshTokens.filter((t) => t !== token);
+
+    res.status(200).send(
+      successResponse({
+        message: getI18nMessage(logoutSuccess),
+      })
+    );
+  } catch (error) {
+    res
+      .status(500)
+      .send(errorResponse({ message: getI18nMessage(serverError) }));
+  }
 });
 
 module.exports = router;

@@ -66,17 +66,18 @@ router.get("/:userId", async (req, res) => {
 router.use(uploadFile).post("/:userId", async (req, res) => {
   const userId = req.params.userId;
   const data = req.body;
-  const user = await dbConnection
-    .createQueryBuilder("users")
-    .where("user.id = :id", { id: userId })
-    .execute();
 
-  if (!user) {
-    return res
-      .status(404)
-      .send(errorResponse({ message: getI18nMessage(userNotFound) }));
-  }
   try {
+    const user = await dbConnection
+      .createQueryBuilder("users")
+      .where("user.id = :id", { id: userId })
+      .execute();
+
+    if (!user) {
+      return res
+        .status(404)
+        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
+    }
     const result = await getConnection()
       .createQueryBuilder()
       .update("users")
@@ -102,16 +103,16 @@ router.use(uploadFile).post("/:userId", async (req, res) => {
 router.delete("/:userId", async (req, res) => {
   const userId = req.params.userId;
 
-  const user = await dbConnection
-    .createQueryBuilder("users")
-    .where("user.id = :id", { id: userId })
-    .execute();
-  if (!user) {
-    return res
-      .status(404)
-      .send(errorResponse({ message: getI18nMessage(userNotFound) }));
-  }
   try {
+    const user = await dbConnection
+      .createQueryBuilder("users")
+      .where("user.id = :id", { id: userId })
+      .execute();
+    if (!user) {
+      return res
+        .status(404)
+        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
+    }
     const deleteResult = await dbConnection
       .createQueryBuilder("users")
       .delete()
