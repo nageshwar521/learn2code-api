@@ -1,6 +1,6 @@
 const express = require("express");
-const typeorm = require("typeorm");
 const { DBX_GET_TEMPORARY_LINK_PATH, DBX_API_DOMAIN } = require("../constants");
+const { getConnection } = require("../db/connection");
 const { uploadFile } = require("../middlewares/upload");
 const {
   userNotFound,
@@ -15,14 +15,13 @@ const {
 } = require("../translations/keys");
 const { getI18nMessage } = require("../translations/messages");
 const { errorResponse, successResponse } = require("../utils");
+const db = require("../db/connection");
 
 const router = express.Router();
 
-const dbConnection = typeorm.getConnection();
-
 router.get("/", async (req, res) => {
   try {
-    const users = await dbConnection.createQueryBuilder("users").getMany();
+    const users = await db("users").select();
 
     res.status(200).send(
       successResponse({
@@ -32,7 +31,7 @@ router.get("/", async (req, res) => {
     );
   } catch (error) {
     return res
-      .status(401)
+      .status(500)
       .send(errorResponse({ message: getI18nMessage(getUsersError) }));
   }
 });
@@ -41,9 +40,7 @@ router.get("/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const user = await dbConnection
-      .createQueryBuilder("users")
-      .where("user.id = :id", { id: userId });
+    const user = await db("users").where("id", userId).first();
     if (!user) {
       return res
         .status(404)
@@ -58,7 +55,7 @@ router.get("/:userId", async (req, res) => {
     );
   } catch (error) {
     return res
-      .status(401)
+      .status(500)
       .send(errorResponse({ message: getI18nMessage(getUserError) }));
   }
 });
@@ -66,27 +63,26 @@ router.get("/:userId", async (req, res) => {
 router.use(uploadFile).post("/:userId", async (req, res) => {
   const userId = req.params.userId;
   const data = req.body;
+  let newData = {
+    ...data,
+  };
 
   try {
-    const user = await dbConnection
-      .createQueryBuilder("users")
-      .where("user.id = :id", { id: userId })
-      .execute();
+    const user = await db("users").where("id", userId).first();
 
     if (!user) {
       return res
         .status(404)
         .send(errorResponse({ message: getI18nMessage(userNotFound) }));
     }
-    const result = await getConnection()
-      .createQueryBuilder()
-      .update("users")
-      .set({
+    if (req.uploadedFile?.path_lower) {
+      newData = {
         ...data,
         profile_img_url: `${DBX_API_DOMAIN}${DBX_GET_TEMPORARY_LINK_PATH}${req.uploadedFile.path_lower}`,
-      })
-      .where("id = :id", { id: userId })
-      .execute();
+      };
+    }
+
+    const result = await db("users").where("id", userId).update(newData);
     res.status(200).send(
       successResponse({
         message: getI18nMessage(userUpdateSuccess),
@@ -95,7 +91,7 @@ router.use(uploadFile).post("/:userId", async (req, res) => {
     );
   } catch (error) {
     return res
-      .status(401)
+      .status(500)
       .send(errorResponse({ message: getI18nMessage(userUpdateError) }));
   }
 });
@@ -104,30 +100,23 @@ router.delete("/:userId", async (req, res) => {
   const userId = req.params.userId;
 
   try {
-    const user = await dbConnection
-      .createQueryBuilder("users")
-      .where("user.id = :id", { id: userId })
-      .execute();
+    const user = await db("users").where("id", userId).first();
     if (!user) {
       return res
         .status(404)
         .send(errorResponse({ message: getI18nMessage(userNotFound) }));
     }
-    const deleteResult = await dbConnection
-      .createQueryBuilder("users")
-      .delete()
-      .where("id = :id", { id: userId })
-      .execute();
+    const result = await db("users").where("id", userId).del();
     res.status(200).send(
       successResponse({
         message: getI18nMessage(userDeleteSuccess),
-        data: { deleteResult },
+        data: result,
       })
     );
   } catch (error) {
     return res
-      .status(401)
-      .send(errorResponse({ message: getI18nMessage(userDeleteError) }));
+      .status(500)
+      .send(errorResponse({ message: getI18nMessage(userDeleteError), error }));
   }
 });
 

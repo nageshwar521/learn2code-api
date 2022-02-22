@@ -1,12 +1,6 @@
-const { mysqlConnection } = require("./mysqldb");
+const { default: knex } = require("knex");
+const { dbConfig } = require("./mysqldb");
 
-const initDB = async () => {
-  try {
-    await mysqlConnection.connect();
-    console.log("Connection success");
-  } catch (error) {
-    console.error("Error connecting: " + err.stack);
-  }
-};
+const knexInstance = knex(dbConfig);
 
-module.exports = { initDB };
+module.exports = knexInstance;

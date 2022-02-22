@@ -2,7 +2,6 @@ const express = require("express");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid");
 const bcrypt = require("bcrypt");
-const typeorm = require("typeorm");
 const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require("../constants");
 const {
   userNotFound,
@@ -18,20 +17,18 @@ const {
 } = require("../translations/keys");
 const { getI18nMessage } = require("../translations/messages");
 const { errorResponse, successResponse } = require("../utils");
+const db = require("../db/connection");
 
 let refreshTokens = [];
 
 const router = express.Router();
 
-const dbConnection = typeorm.getConnection();
-
 router.post("/login", async (req, res) => {
   const data = req.body;
 
   try {
-    const user = await dbConnection
-      .createQueryBuilder("users")
-      .where("user.email = :email", { email: data.email });
+    const user = await db("users").where("email", data.email).first();
+    console.log(user);
 
     if (!user) {
       return res
@@ -84,26 +81,21 @@ router.post("/register", async (req, res) => {
     }
   }
   try {
-    const user = await dbConnection
-      .createQueryBuilder("users")
-      .where("user.email = :email", { email: data.email });
+    const user = await db("users").where("email", data.email).first();
+    console.log(user);
 
     if (user) {
-      return res
-        .status(400)
-        .send(errorResponse({ message: getI18nMessage(userExists) }));
+      return res.status(400).send(
+        errorResponse({
+          message: getI18nMessage(userExists),
+        })
+      );
     }
     const hash = await bcrypt.hash(data.password, 10);
-    const result = await getConnection()
-      .createQueryBuilder()
-      .insert()
-      .into("users")
-      .values({
-        ...data,
-        id: uuid.v4(),
-        password: hash,
-      })
-      .execute();
+    const result = await db("users").insert({
+      ...data,
+      password: hash,
+    });
     res.status(201).send(
       successResponse({
         message: getI18nMessage(registerSuccess),
@@ -113,7 +105,7 @@ router.post("/register", async (req, res) => {
   } catch (error) {
     res
       .status(500)
-      .send(errorResponse({ message: getI18nMessage(serverError) }));
+      .send(errorResponse({ message: getI18nMessage(serverError), error }));
   }
 });
 

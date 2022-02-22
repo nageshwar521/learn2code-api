@@ -25,6 +25,6 @@ app.use("/api/users", verifyToken, usersRoutes);
 require("./app/middlewares/socket")(io);
 
 app.listen(5000, () => {
-  initDB();
+  // initDB();
   console.log("Server running at http://localhost:5000");
 });
