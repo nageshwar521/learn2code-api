@@ -1,17 +1,14 @@
 const express = require("express");
-const { DBX_GET_TEMPORARY_LINK_PATH, DBX_API_DOMAIN } = require("../constants");
-const { getConnection } = require("../db/connection");
-const { uploadFile } = require("../middlewares/upload");
 const {
-  userNotFound,
-  userUpdateSuccess,
-  userUpdateError,
-  userDeleteSuccess,
-  userDeleteError,
-  getUsersSuccess,
-  getUsersError,
-  getUserSuccess,
-  getUserError,
+  roleNotFound,
+  roleUpdateSuccess,
+  roleUpdateError,
+  roleDeleteSuccess,
+  roleDeleteError,
+  getRolesSuccess,
+  getRolesError,
+  getRoleSuccess,
+  getRoleError,
 } = require("../translations/keys");
 const { getI18nMessage } = require("../translations/messages");
 const { errorResponse, successResponse } = require("../utils");
@@ -21,102 +18,95 @@ const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const users = await db("users").select();
+    const roles = await db("roles").select();
 
     res.status(200).send(
       successResponse({
-        message: getI18nMessage(getUsersSuccess),
-        data: { users },
+        message: getI18nMessage(getRolesSuccess),
+        data: { roles },
       })
     );
   } catch (error) {
     return res
       .status(500)
-      .send(errorResponse({ message: getI18nMessage(getUsersError) }));
+      .send(errorResponse({ message: getI18nMessage(getRolesError) }));
   }
 });
 
-router.get("/:userId", async (req, res) => {
-  const userId = req.params.userId;
+router.get("/:roleId", async (req, res) => {
+  const roleId = req.params.roleId;
 
   try {
-    const user = await db("users").where("id", userId).first();
-    if (!user) {
+    const role = await db("roles").where("id", roleId).first();
+    if (!role) {
       return res
         .status(404)
-        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
+        .send(errorResponse({ message: getI18nMessage(roleNotFound) }));
     }
-    const { password, ...userDetails } = user;
     res.status(200).send(
       successResponse({
-        message: getI18nMessage(getUserSuccess),
-        data: { user: userDetails },
+        message: getI18nMessage(getRoleSuccess),
+        data: { role },
       })
     );
   } catch (error) {
     return res
       .status(500)
-      .send(errorResponse({ message: getI18nMessage(getUserError) }));
+      .send(errorResponse({ message: getI18nMessage(getRoleError) }));
   }
 });
 
-router.use(uploadFile).post("/:userId", async (req, res) => {
-  const userId = req.params.userId;
+router.post("/:roleId", async (req, res) => {
+  const roleId = req.params.roleId;
   const data = req.body;
   let newData = {
     ...data,
   };
 
   try {
-    const user = await db("users").where("id", userId).first();
+    const role = await db("roles").where("id", roleId).first();
 
-    if (!user) {
+    if (!role) {
       return res
         .status(404)
-        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
-    }
-    if (req.uploadedFile?.path_lower) {
-      newData = {
-        ...data,
-        profile_img_url: `${DBX_API_DOMAIN}${DBX_GET_TEMPORARY_LINK_PATH}${req.uploadedFile.path_lower}`,
-      };
+        .send(errorResponse({ message: getI18nMessage(roleNotFound) }));
     }
 
-    const result = await db("users").where("id", userId).update(newData);
+    const result = await db("roles").where("id", roleId).update(newData);
     res.status(200).send(
       successResponse({
-        message: getI18nMessage(userUpdateSuccess),
+        message: getI18nMessage(roleUpdateSuccess),
         data: { result },
       })
     );
   } catch (error) {
     return res
       .status(500)
-      .send(errorResponse({ message: getI18nMessage(userUpdateError) }));
+      .send(errorResponse({ message: getI18nMessage(roleUpdateError) }));
   }
 });
 
-router.delete("/:userId", async (req, res) => {
-  const userId = req.params.userId;
+router.delete("/:roleId", async (req, res) => {
+  const roleId = req.params.roleId;
 
   try {
-    const user = await db("users").where("id", userId).first();
-    if (!user) {
+    const role = await db("roles").where("id", roleId).first();
+    if (!role) {
       return res
         .status(404)
-        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
+        .send(errorResponse({ message: getI18nMessage(roleNotFound) }));
     }
-    const result = await db("users").where("id", userId).del();
+    const result = await db("roles").where("id", roleId).del();
     res.status(200).send(
       successResponse({
-        message: getI18nMessage(userDeleteSuccess),
+        message: getI18nMessage(roleDeleteSuccess),
         data: result,
       })
     );
   } catch (error) {
     return res
       .status(500)
-      .send(errorResponse({ message: getI18nMessage(userDeleteError), error }));
+      .send(errorResponse({ message: getI18nMessage(roleDeleteError), error }));
   }
 });
 

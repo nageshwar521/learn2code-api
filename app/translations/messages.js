@@ -18,6 +18,16 @@ const messages = {
   getUserSuccess: "Get User Success",
   missingRequiredFields: "{field} is required",
   getRefreshTokenSuccess: "Get token success",
+  roleUpdateSuccess: "Role Updated Successfully",
+  roleUpdateError: "Role Update Failed",
+  roleDeleteSuccess: "Role Deleted Successfully",
+  roleDeleteError: "Role Delete Failed",
+  getRolesSuccess: "Get Roles Successfully",
+  getRolesError: "Get Roles Failed",
+  getRoleSuccess: "Get Role Success",
+  getRoleError: "Get Role Failed",
+  roleNotFound: "Role not found",
+  roleExists: "Role already exists",
 };
 
 const getI18nMessage = (msgKey) => {

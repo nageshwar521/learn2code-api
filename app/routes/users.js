@@ -1,6 +1,5 @@
 const express = require("express");
 const { DBX_GET_TEMPORARY_LINK_PATH, DBX_API_DOMAIN } = require("../constants");
-const { getConnection } = require("../db/connection");
 const { uploadFile } = require("../middlewares/upload");
 const {
   userNotFound,
