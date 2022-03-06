@@ -5,12 +5,12 @@ jobs:
     name: 🎉 Deploy
     runs-on: ubuntu-latest
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v2
-    
-    - name: 📂 Sync files
-      uses: SamKirkland/FTP-Deploy-Action@4.2.0
-      with:
-        server: ftp.alnlabs.com
-        username: learn2code@alnlabs.com
-        password: ${{ secrets.ftp_password }}
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v2
+
+      - name: 📂 Sync files
+        uses: airvzxf/ftp-deployment-action@latest
+        with:
+          server: ftp.alnlabs.com
+          user: learn2code@alnlabs.com
+          password: ${{ secrets.ftp_password }}
