@@ -1,17 +1,12 @@
 require("dotenv").config();
 const express = require("express");
-const http = require("http");
 const cors = require("cors");
-const socketIo = require("socket.io");
-const { initDB } = require("./app/db/connection");
 const authRoutes = require("./app/routes/auth");
 const usersRoutes = require("./app/routes/users");
+const rolesRoutes = require("./app/routes/roles");
 const { verifyToken } = require("./app/middlewares/auth");
 
 const app = express();
-const server = http.createServer(app);
-
-const io = socketIo(server).sockets;
 
 app.use(express.json());
 app.use(cors());
@@ -21,10 +16,9 @@ app.use("/test", (req, res) => {
 });
 app.use("/api/auth", authRoutes);
 app.use("/api/users", verifyToken, usersRoutes);
-
-require("./app/middlewares/socket")(io);
+app.use("/api/roles", verifyToken, rolesRoutes);
 
 app.listen(5000, () => {
   // initDB();
-  console.log("Server running at http://localhost:5000");
+  console.log("Server running at http://127.0.0.1:5000");
 });

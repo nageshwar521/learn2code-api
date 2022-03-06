@@ -4,12 +4,12 @@
 // const MONGO_DB = process.env.MONGO_DB;
 // const USERS_TABLE = process.env.USERS_TABLE;
 
-const ACCESS_TOKEN_SECRET = process.env.ACCESS_TOKEN_SECRET;
-const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
+const ACCESS_TOKEN_SECRET = 'secretKey';
+const REFRESH_TOKEN_SECRET = 'secretKey';
 
-const DBX_ACCESS_TOKEN = process.env.DBX_ACCESS_TOKEN;
+const DBX_ACCESS_TOKEN = '_yQrQa4XHg0AAAAAAAAAAWdTapdov1txNMbATgdagf4ERdvQpGyD0tu4BWcXm0DY';
 const DBX_GET_TEMPORARY_LINK_PATH = "https://api.dropboxapi.com/2";
-const DBX_API_DOMAIN = process.env.DBX_API_DOMAIN;
+const DBX_API_DOMAIN = 'https://api.dropboxapi.com';
 
 // const MONGO_URI = `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_HOSTNAME}/${MONGO_DB}?retryWrites=true&w=majority`;
 
