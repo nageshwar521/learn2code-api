@@ -1,26 +1,27 @@
 on: push
-name: 🚀 Deploy api on push
+name: Deploy api on push
 jobs:
   web-deploy:
-    name: 🎉 Deploy
+    name: Deploy
     runs-on: ubuntu-latest
     steps:
-      - name: 🚚 Get latest code
+      - name: Getting latest code
         uses: actions/checkout@v2
 
-      - name: Upload files
-        uses: wangyucode/sftp-upload-action
+      - name: Deploying files to server
+        uses: wlixcc/SFTP-Deploy-Action@v1.0
         with:
-          server: "alnlabs.com"
-          port: 22
           username: "nageshwar521"
-          ssh_private_key: ${{ secrets.ftp_password }}
-          remotePath: "./api"
-      - name: actions/setup-node
+          server: "${{ secrets.SERVER_IP }}"
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          remote_path: "/api"
+          args: "-o ConnectTimeout=5"
+      - name: Installing Node - v16.14.0
         uses: actions/setup-node@v1.4.1
         with:
           node-version: "16.14.0"
-      - name: npm install
+      - name: Installing dependencies...
         uses: jaid/action-npm-install@v1.2.1
 
-      - run: npm start
+      - name: Running application
+        run: npm start
