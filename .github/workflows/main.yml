@@ -15,3 +15,10 @@ jobs:
           user: nageshwar521
           password: ${{ secrets.ftp_password }}
           remote_dir: "/api"
+      - name: actions/setup-node
+        uses: actions/setup-node@v1.4.1
+        with:
+          node-version: "16.14.0"
+      - name: npm install
+        uses: jaid/action-npm-install@v1.2.1
+        run: npm start
