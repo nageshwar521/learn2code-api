@@ -8,13 +8,13 @@ jobs:
       - name: 🚚 Get latest code
         uses: actions/checkout@v2
 
-      - name: 📂 Sync files
-        uses: Creepios/sftp-action@v1.0.3
+      - name: Upload files
+        uses: sftp-sync-deploy
         with:
-          host: "192.46.210.7"
+          server: "alnlabs.com"
           port: 22
           username: "nageshwar521"
-          password: ${{ secrets.ftp_password }}
+          ssh_private_key: ${{ secrets.ftp_password }}
           remotePath: "./api"
       - name: actions/setup-node
         uses: actions/setup-node@v1.4.1
