@@ -21,4 +21,5 @@ jobs:
           node-version: "16.14.0"
       - name: npm install
         uses: jaid/action-npm-install@v1.2.1
-        run: npm start
+
+      - run: npm start
