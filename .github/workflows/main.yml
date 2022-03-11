@@ -8,14 +8,16 @@ jobs:
       - name: Getting latest code
         uses: actions/checkout@v2
 
-      - name: Deploying files to server
-        uses: wlixcc/SFTP-Deploy-Action@v1.0
+      - name: Deploy to sandbox via rsync
+        uses: trendyminds/github-actions-rsync@master
         with:
-          username: "nageshwar521"
-          server: "${{ secrets.SERVER_IP }}"
-          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          remote_path: "/api"
-          args: "-o ConnectTimeout=5"
+          RSYNC_OPTIONS: -avzr --delete --exclude node_modules --exclude '.git*'
+          RSYNC_TARGET: ./api
+        env:
+          SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
+          SSH_USERNAME: ${{secrets.SSH_USERNAME}}
+          SSH_HOSTNAME: ${{secrets.SSH_HOSTNAME}}
+
       - name: Installing Node - v16.14.0
         uses: actions/setup-node@v1.4.1
         with:
