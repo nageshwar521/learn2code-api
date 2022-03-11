@@ -11,8 +11,8 @@ jobs:
       - name: Deploy to sandbox via rsync
         uses: trendyminds/github-actions-rsync@master
         with:
-          RSYNC_OPTIONS: -avzr --delete --exclude node_modules --exclude '.git*'
-          RSYNC_TARGET: ./api
+          RSYNC_OPTIONS: "-avzr --delete --exclude node_modules --exclude '.git*'"
+          RSYNC_TARGET: "./api"
         env:
           SSH_PRIVATE_KEY: ${{secrets.SSH_PRIVATE_KEY}}
           SSH_USERNAME: ${{secrets.SSH_USERNAME}}
