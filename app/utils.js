@@ -12,4 +12,9 @@ const generateId = () => {
   return uuid.v4();
 };
 
-module.exports = { successResponse, errorResponse, generateId };
+const isValidEmail = (email) => {
+  var re = /\S+@\S+\.\S+/;
+  return re.test(email);
+};
+
+module.exports = { successResponse, errorResponse, generateId, isValidEmail };

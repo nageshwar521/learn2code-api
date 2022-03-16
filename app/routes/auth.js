@@ -14,9 +14,10 @@ const {
   noToken,
   getRefreshTokenSuccess,
   logoutSuccess,
+  roleNotFound,
 } = require("../translations/keys");
 const { getI18nMessage } = require("../translations/messages");
-const { errorResponse, successResponse } = require("../utils");
+const { errorResponse, successResponse, isValidEmail } = require("../utils");
 const db = require("../db/connection");
 
 let refreshTokens = [];
@@ -25,10 +26,20 @@ const router = express.Router();
 
 router.post("/login", async (req, res) => {
   const data = req.body;
+  const isEmail = isValidEmail(data.username);
 
   try {
-    const user = await db("users").where("email", data.email).first();
-    console.log(user);
+    let user = null;
+    if (!data.role) {
+      return res
+        .status(404)
+        .send(errorResponse({ message: getI18nMessage(roleNotFound) }));
+    } else if (isEmail) {
+      user = await db("users").where("email", data.username).first();
+    } else {
+      user = await db("users").where("username", data.username).first();
+    }
+    // console.log(user);
 
     if (!user) {
       return res
@@ -67,12 +78,12 @@ router.post("/login", async (req, res) => {
 router.post("/register", async (req, res) => {
   const data = req.body;
 
-  if (!(data.email && data.password)) {
+  if (!(data.username && data.password)) {
     const missingFieldMessage = getI18nMessage(missingRequiredFields);
     let requiredMessage = "";
 
-    if (!data.email) {
-      requiredMessage = missingFieldMessage.replace("{field}", "Email");
+    if (!data.username) {
+      requiredMessage = missingFieldMessage.replace("{field}", "Username");
       return res.status(400).send(errorResponse({ message: requiredMessage }));
     }
     if (!data.password) {
@@ -81,7 +92,7 @@ router.post("/register", async (req, res) => {
     }
   }
   try {
-    const user = await db("users").where("email", data.email).first();
+    const user = await db("users").where("username", data.username).first();
     console.log(user);
 
     if (user) {

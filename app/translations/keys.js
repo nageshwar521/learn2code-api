@@ -12,6 +12,9 @@ const userUpdateSuccess = "userUpdateSuccess";
 const userUpdateError = "userUpdateError";
 const userDeleteSuccess = "userDeleteSuccess";
 const userDeleteError = "userDeleteError";
+const addUserSuccess = "addUserSuccess";
+const addUserError = "addUserError";
+const userAlreadyExists = "userAlreadyExists";
 const getUsersSuccess = "getUsersSuccess";
 const getUsersError = "getUsersError";
 const getUserError = "getUserError";
@@ -27,6 +30,9 @@ const getRoleError = "getRoleError";
 const getRoleSuccess = "getRoleSuccess";
 const roleNotFound = "roleNotFound";
 const roleExists = "roleExists";
+const addRoleSuccess = "addRoleSuccess";
+const addRoleError = "addRoleError";
+const roleAlreadyExists = "roleAlreadyExists";
 
 module.exports = {
   userNotFound,
@@ -43,6 +49,9 @@ module.exports = {
   userUpdateError,
   userDeleteSuccess,
   userDeleteError,
+  addUserSuccess,
+  addRoleError,
+  userAlreadyExists,
   getUsersSuccess,
   getUsersError,
   getUserSuccess,
@@ -58,4 +67,7 @@ module.exports = {
   getRoleError,
   roleNotFound,
   roleExists,
+  addRoleSuccess,
+  addRoleSuccess,
+  roleAlreadyExists,
 };

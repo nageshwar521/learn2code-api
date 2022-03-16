@@ -9,6 +9,9 @@ const {
   getRolesError,
   getRoleSuccess,
   getRoleError,
+  roleAlreadyExists,
+  addRoleSuccess,
+  addRoleError,
 } = require("../translations/keys");
 const { getI18nMessage } = require("../translations/messages");
 const { errorResponse, successResponse } = require("../utils");
@@ -30,6 +33,30 @@ router.get("/", async (req, res) => {
     return res
       .status(500)
       .send(errorResponse({ message: getI18nMessage(getRolesError) }));
+  }
+});
+
+router.post("/", async (req, res) => {
+  const data = req.body;
+
+  try {
+    const role = await db("roles").where("name", data.name).first();
+    if (role) {
+      return res
+        .status(400)
+        .send(errorResponse({ message: getI18nMessage(roleAlreadyExists) }));
+    }
+    const result = await db("roles").insert(data);
+    res.status(200).send(
+      successResponse({
+        message: getI18nMessage(addRoleSuccess),
+        data: { result },
+      })
+    );
+  } catch (error) {
+    return res
+      .status(500)
+      .send(errorResponse({ message: getI18nMessage(addRoleError) }));
   }
 });
 

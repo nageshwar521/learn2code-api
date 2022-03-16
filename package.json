@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon server.js",
-    "postinstall": "knex migrate:latest"
+    "postinstall": "knex migrate:latest",
+    "rollback": "knex migrate:rollback",
+    "resetDb": "node ./app/db/resetDb.js"
   },
   "keywords": [],
   "author": "",

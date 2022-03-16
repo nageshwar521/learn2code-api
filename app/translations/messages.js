@@ -16,6 +16,9 @@ const messages = {
   getUsersError: "Get Users Failed",
   getUserError: "Get User Failed",
   getUserSuccess: "Get User Success",
+  addUserSuccess: "Add User Success",
+  addUserError: "Add User Error",
+  userAlreadyExists: "User already exists",
   missingRequiredFields: "{field} is required",
   getRefreshTokenSuccess: "Get token success",
   roleUpdateSuccess: "Role Updated Successfully",
@@ -28,6 +31,9 @@ const messages = {
   getRoleError: "Get Role Failed",
   roleNotFound: "Role not found",
   roleExists: "Role already exists",
+  addRoleSuccess: "Add Role Success",
+  addRoleError: "Add Role Error",
+  roleAlreadyExists: "Role already exists",
 };
 
 const getI18nMessage = (msgKey) => {

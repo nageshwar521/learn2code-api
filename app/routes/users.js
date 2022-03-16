@@ -11,10 +11,15 @@ const {
   getUsersError,
   getUserSuccess,
   getUserError,
+  missingRequiredFields,
+  userExists,
 } = require("../translations/keys");
 const { getI18nMessage } = require("../translations/messages");
 const { errorResponse, successResponse } = require("../utils");
 const db = require("../db/connection");
+const jwt = require("jsonwebtoken");
+const uuid = require("uuid");
+const bcrypt = require("bcrypt");
 
 const router = express.Router();
 
@@ -32,6 +37,51 @@ router.get("/", async (req, res) => {
     return res
       .status(500)
       .send(errorResponse({ message: getI18nMessage(getUsersError) }));
+  }
+});
+
+router.post("/", async (req, res) => {
+  const data = req.body;
+
+  if (!(data.username && data.password)) {
+    const missingFieldMessage = getI18nMessage(missingRequiredFields);
+    let requiredMessage = "";
+
+    if (!data.username) {
+      requiredMessage = missingFieldMessage.replace("{field}", "Username");
+      return res.status(400).send(errorResponse({ message: requiredMessage }));
+    }
+    if (!data.password) {
+      requiredMessage = missingFieldMessage.replace("{field}", "Password");
+      return res.status(400).send(errorResponse({ message: requiredMessage }));
+    }
+  }
+  try {
+    const user = await db("users").where("username", data.username).first();
+    // console.log(user);
+
+    if (user) {
+      return res.status(400).send(
+        errorResponse({
+          message: getI18nMessage(userExists),
+        })
+      );
+    }
+    const hash = await bcrypt.hash(data.password, 10);
+    const result = await db("users").insert({
+      ...data,
+      password: hash,
+    });
+    res.status(201).send(
+      successResponse({
+        message: getI18nMessage(registerSuccess),
+        data: { user: result },
+      })
+    );
+  } catch (error) {
+    res
+      .status(500)
+      .send(errorResponse({ message: getI18nMessage(serverError), error }));
   }
 });
 
