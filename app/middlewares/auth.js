@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { ACCESS_TOKEN_SECRET } = require("../constants");
-const { noToken, tokenNotMatch } = require("../translations/keys");
-const { getI18nMessage } = require("../translations/messages");
+const { noToken, tokenNotMatch } = require("../translations/keys/commonKeys");
+const { getI18nMessage } = require("../translations");
 const { errorResponse, successResponse } = require("../utils");
 
 const verifyToken = (req, res, next) => {

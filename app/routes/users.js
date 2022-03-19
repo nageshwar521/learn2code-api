@@ -11,21 +11,23 @@ const {
   getUsersError,
   getUserSuccess,
   getUserError,
-  missingRequiredFields,
   userExists,
-} = require("../translations/keys");
-const { getI18nMessage } = require("../translations/messages");
+  addUserSuccess,
+} = require("../translations/keys/commonKeys");
+const { getI18nMessage } = require("../translations");
 const { errorResponse, successResponse } = require("../utils");
 const db = require("../db/connection");
-const jwt = require("jsonwebtoken");
-const uuid = require("uuid");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
+const {
+  missingRequiredFields,
+  serverError,
+} = require("../translations/keys/commonKeys");
 
 const router = express.Router();
 
 router.get("/", async (req, res) => {
   try {
-    const users = await db("users").select();
+    const users = await db("users").select().orderBy("created_at", "desc");
 
     res.status(200).send(
       successResponse({
@@ -42,22 +44,21 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   const data = req.body;
+  const missingFieldMessage = getI18nMessage(missingRequiredFields);
 
-  if (!(data.username && data.password)) {
-    const missingFieldMessage = getI18nMessage(missingRequiredFields);
-    let requiredMessage = "";
-
-    if (!data.username) {
-      requiredMessage = missingFieldMessage.replace("{field}", "Username");
+  try {
+    if (!data.email) {
+      const requiredMessage = missingFieldMessage.replace("{field}", "Email");
       return res.status(400).send(errorResponse({ message: requiredMessage }));
     }
     if (!data.password) {
-      requiredMessage = missingFieldMessage.replace("{field}", "Password");
+      const requiredMessage = missingFieldMessage.replace(
+        "{field}",
+        "Password"
+      );
       return res.status(400).send(errorResponse({ message: requiredMessage }));
     }
-  }
-  try {
-    const user = await db("users").where("username", data.username).first();
+    const user = await db("users").where("email", data.email).first();
     // console.log(user);
 
     if (user) {
@@ -68,14 +69,15 @@ router.post("/", async (req, res) => {
       );
     }
     const hash = await bcrypt.hash(data.password, 10);
-    const result = await db("users").insert({
+    await db("users").insert({
       ...data,
       password: hash,
     });
+    const newUser = await db("users").where("email", data.email).first();
     res.status(201).send(
       successResponse({
-        message: getI18nMessage(registerSuccess),
-        data: { user: result },
+        message: getI18nMessage(addUserSuccess),
+        data: { user: newUser },
       })
     );
   } catch (error) {
@@ -120,28 +122,35 @@ router.use(uploadFile).post("/:userId", async (req, res) => {
     const user = await db("users").where("id", userId).first();
 
     if (!user) {
-      return res
-        .status(404)
-        .send(errorResponse({ message: getI18nMessage(userNotFound) }));
+      return res.status(404).send(
+        errorResponse({
+          message: getI18nMessage(userNotFound),
+          error: { user },
+        })
+      );
     }
-    if (req.uploadedFile?.path_lower) {
-      newData = {
-        ...data,
-        profile_img_url: `${DBX_API_DOMAIN}${DBX_GET_TEMPORARY_LINK_PATH}${req.uploadedFile.path_lower}`,
-      };
-    }
+    // if (req?.uploadedFile?.path_lower) {
+    //   newData = {
+    //     ...data,
+    //     profile_img_url: `${DBX_API_DOMAIN}${DBX_GET_TEMPORARY_LINK_PATH}${req.uploadedFile.path_lower}`,
+    //   };
+    // }
 
-    const result = await db("users").where("id", userId).update(newData);
+    await db("users").update(newData).where("id", userId);
+    const newUser = await db("users").where("id", userId).first();
     res.status(200).send(
       successResponse({
         message: getI18nMessage(userUpdateSuccess),
-        data: { result },
+        data: { user: newUser },
       })
     );
   } catch (error) {
-    return res
-      .status(500)
-      .send(errorResponse({ message: getI18nMessage(userUpdateError) }));
+    return res.status(500).send(
+      errorResponse({
+        message: getI18nMessage(userUpdateError),
+        error: { userId, data },
+      })
+    );
   }
 });
 

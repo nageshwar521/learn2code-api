@@ -1,8 +1,8 @@
 const path = require("path");
 const dropboxV2Api = require("dropbox-v2-api");
 const { DBX_ACCESS_TOKEN } = require("../constants");
-const { serverError } = require("../translations/keys");
-const { getI18nMessage } = require("../translations/messages");
+const { serverError } = require("../translations/keys/commonKeys");
+const { getI18nMessage } = require("../translations");
 const { errorResponse } = require("../utils");
 
 const dropbox = dropboxV2Api.authenticate({

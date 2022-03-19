@@ -1,13 +1,23 @@
 const db = require("./connection");
 
 async function resetDb() {
-  const results = await db.raw(
-    "SELECT table_name FROM information_schema.tables WHERE table_schema = 'alnlabs_db';"
-  );
+  const results = [
+    "roles",
+    "branches",
+    "users",
+    "orders",
+    "services",
+    "transactions",
+    "permissions",
+    "dictionary",
+    "coupans",
+    "knex_migrations",
+    "knex_migrations_lock",
+  ];
 
   await db.raw("SET FOREIGN_KEY_CHECKS = 0");
 
-  results[0].forEach(async ({ table_name }) => {
+  results.forEach(async (table_name) => {
     await db.raw("DROP TABLE IF EXISTS '" + table_name + "';");
   });
 

@@ -1,4 +1,4 @@
-const messages = {
+const commonMsgs = {
   userNotFound: "User not found",
   userPasswordNotMatch: "Username and Password doesnot match",
   loginSuccess: "Login successful",
@@ -21,23 +21,6 @@ const messages = {
   userAlreadyExists: "User already exists",
   missingRequiredFields: "{field} is required",
   getRefreshTokenSuccess: "Get token success",
-  roleUpdateSuccess: "Role Updated Successfully",
-  roleUpdateError: "Role Update Failed",
-  roleDeleteSuccess: "Role Deleted Successfully",
-  roleDeleteError: "Role Delete Failed",
-  getRolesSuccess: "Get Roles Successfully",
-  getRolesError: "Get Roles Failed",
-  getRoleSuccess: "Get Role Success",
-  getRoleError: "Get Role Failed",
-  roleNotFound: "Role not found",
-  roleExists: "Role already exists",
-  addRoleSuccess: "Add Role Success",
-  addRoleError: "Add Role Error",
-  roleAlreadyExists: "Role already exists",
 };
 
-const getI18nMessage = (msgKey) => {
-  return messages[msgKey] || "";
-};
-
-module.exports = { getI18nMessage };
+module.exports = commonMsgs;

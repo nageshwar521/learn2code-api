@@ -8,16 +8,31 @@ exports.up = function (knex) {
     .then(function (exists) {
       if (!exists) {
         return knex.schema.createTable("roles", function (table) {
-          table.uuid("id");
+          table.uuid("id").defaultTo(knex.raw("(UUID())"));
           table.string("name").notNullable();
         });
       }
     })
     .then(function () {
+      return knex.schema.hasTable("branches").then(function (exists) {
+        if (!exists) {
+          return knex.schema.createTable("branches", function (table) {
+            table.uuid("id").defaultTo(knex.raw("(UUID())"));
+            table.string("branch_name").unique().notNullable();
+            table.string("phone_number").unique().notNullable();
+            table.string("address").notNullable();
+            table.string("latlng").notNullable();
+            table.timestamp("created_at").defaultTo(knex.fn.now());
+            table.timestamp("updated_at").defaultTo(knex.fn.now());
+          });
+        }
+      });
+    })
+    .then(function () {
       return knex.schema.hasTable("users").then(function (exists) {
         if (!exists) {
           return knex.schema.createTable("users", function (table) {
-            table.uuid("id");
+            table.uuid("id").defaultTo(knex.raw("(UUID())"));
             table.string("first_name").nullable();
             table.string("middle_name").nullable();
             table.string("last_name").nullable();
@@ -25,7 +40,16 @@ exports.up = function (knex) {
             table.string("address").nullable();
             table.string("profile_img_url").nullable();
             table.string("dob").nullable();
-            table.uuid("role_id").references("id").inTable("roles");
+            table
+              .uuid("role_id")
+              .defaultTo(null)
+              .references("id")
+              .inTable("roles");
+            table
+              .uuid("branch_id")
+              .defaultTo(null)
+              .references("id")
+              .inTable("branches");
             table.string("email").unique().notNullable();
             table.string("username").unique().nullable();
             table.text("password").notNullable();
@@ -44,5 +68,6 @@ exports.up = function (knex) {
 exports.down = function (knex) {
   return knex.schema
     .dropTable("users")
-    .then(() => knex.schema.dropTable("roles"));
+    .then(() => knex.schema.dropTable("roles"))
+    .then(() => knex.schema.dropTable("branches"));
 };

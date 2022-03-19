@@ -1,8 +1,12 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const uuid = require("uuid");
-const bcrypt = require("bcrypt");
-const { ACCESS_TOKEN_SECRET, REFRESH_TOKEN_SECRET } = require("../constants");
+const bcrypt = require("bcryptjs");
+const {
+  ACCESS_TOKEN_SECRET,
+  REFRESH_TOKEN_SECRET,
+  TOKEN_EXPIRE_TIME,
+} = require("../constants");
 const {
   userNotFound,
   userPasswordNotMatch,
@@ -14,9 +18,8 @@ const {
   noToken,
   getRefreshTokenSuccess,
   logoutSuccess,
-  roleNotFound,
-} = require("../translations/keys");
-const { getI18nMessage } = require("../translations/messages");
+} = require("../translations/keys/commonKeys");
+const { getI18nMessage } = require("../translations");
 const { errorResponse, successResponse, isValidEmail } = require("../utils");
 const db = require("../db/connection");
 
@@ -55,7 +58,7 @@ router.post("/login", async (req, res) => {
     const accessToken = jwt.sign(
       { username: data.username },
       ACCESS_TOKEN_SECRET,
-      { expiresIn: "60m" }
+      { expiresIn: TOKEN_EXPIRE_TIME }
     );
     const refreshToken = jwt.sign(
       { username: data.username },
@@ -65,7 +68,12 @@ router.post("/login", async (req, res) => {
     res.status(200).send(
       successResponse({
         message: getI18nMessage(loginSuccess),
-        data: { accessToken, refreshToken, user: userDetails },
+        data: {
+          accessToken,
+          refreshToken,
+          expiresIn: TOKEN_EXPIRE_TIME,
+          user: userDetails,
+        },
       })
     );
   } catch (error) {
