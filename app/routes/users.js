@@ -1,5 +1,4 @@
 const express = require("express");
-const { DBX_GET_TEMPORARY_LINK_PATH, DBX_API_DOMAIN } = require("../constants");
 const { uploadFile } = require("../middlewares/upload");
 const {
   userNotFound,
@@ -15,7 +14,7 @@ const {
   addUserSuccess,
 } = require("../translations/keys/commonKeys");
 const { getI18nMessage } = require("../translations");
-const { errorResponse, successResponse } = require("../utils");
+const { errorResponse, successResponse, isValidEmail } = require("../utils");
 const db = require("../db/connection");
 const bcrypt = require("bcryptjs");
 const {
@@ -108,6 +107,40 @@ router.get("/:userId", async (req, res) => {
     return res
       .status(500)
       .send(errorResponse({ message: getI18nMessage(getUserError) }));
+  }
+});
+
+router.post("/username", async (req, res) => {
+  const data = req.body;
+  const isEmail = isValidEmail(data.username);
+
+  try {
+    if (isEmail) {
+      user = await db("users").where("email", data.username).first();
+    } else {
+      user = await db("users").where("username", data.username).first();
+    }
+    if (!user) {
+      return res.status(404).send(
+        errorResponse({
+          message: getI18nMessage(userNotFound),
+          error: { isEmail },
+        })
+      );
+    }
+    const { password, ...userDetails } = user;
+    res.status(200).send(
+      successResponse({
+        message: getI18nMessage(getUserSuccess),
+        data: { user: userDetails },
+      })
+    );
+  } catch (error) {
+    return res
+      .status(500)
+      .send(
+        errorResponse({ message: getI18nMessage(getUserError), error: data })
+      );
   }
 });
 

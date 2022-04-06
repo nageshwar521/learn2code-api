@@ -40,16 +40,8 @@ exports.up = function (knex) {
             table.string("address").nullable();
             table.string("profile_img_url").nullable();
             table.string("dob").nullable();
-            table
-              .uuid("role_id")
-              .defaultTo(null)
-              .references("id")
-              .inTable("roles");
-            table
-              .uuid("branch_id")
-              .defaultTo(null)
-              .references("id")
-              .inTable("branches");
+            table.uuid("role_id").nullable();
+            table.uuid("branch_id").nullable();
             table.string("email").unique().notNullable();
             table.string("username").unique().nullable();
             table.text("password").notNullable();

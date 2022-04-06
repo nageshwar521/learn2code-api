@@ -46,18 +46,7 @@ router.post("/", async (req, res) => {
   const missingFieldMessage = getI18nMessage(missingRequiredFields);
 
   try {
-    if (!data.email) {
-      const requiredMessage = missingFieldMessage.replace("{field}", "Email");
-      return res.status(400).send(errorResponse({ message: requiredMessage }));
-    }
-    if (!data.password) {
-      const requiredMessage = missingFieldMessage.replace(
-        "{field}",
-        "Password"
-      );
-      return res.status(400).send(errorResponse({ message: requiredMessage }));
-    }
-    const service = await db("services").where("email", data.email).first();
+    const service = await db("services").where("name", data.name).first();
     // console.log(service);
 
     if (service) {
@@ -67,12 +56,9 @@ router.post("/", async (req, res) => {
         })
       );
     }
-    const hash = await bcrypt.hash(data.password, 10);
-    await db("services").insert({
-      ...data,
-      password: hash,
-    });
-    const newService = await db("services").where("email", data.email).first();
+
+    await db("services").insert(data);
+    const newService = await db("services").where("name", data.name).first();
     res.status(201).send(
       successResponse({
         message: getI18nMessage(addServiceSuccess),
@@ -96,11 +82,10 @@ router.get("/:serviceId", async (req, res) => {
         .status(404)
         .send(errorResponse({ message: getI18nMessage(serviceNotFound) }));
     }
-    const { password, ...serviceDetails } = service;
     res.status(200).send(
       successResponse({
         message: getI18nMessage(getServiceSuccess),
-        data: { service: serviceDetails },
+        data: { service },
       })
     );
   } catch (error) {

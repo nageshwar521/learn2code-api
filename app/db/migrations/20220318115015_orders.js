@@ -7,21 +7,9 @@ exports.up = function (knex) {
     if (!exists) {
       return knex.schema.createTable("orders", function (table) {
         table.uuid("id").defaultTo(knex.raw("(UUID())"));
-        table
-          .uuid("customer_id")
-          .defaultTo(null)
-          .references("id")
-          .inTable("users");
-        table
-          .uuid("employee_id")
-          .defaultTo(null)
-          .references("id")
-          .inTable("users");
-        table
-          .uuid("branch_id")
-          .defaultTo(null)
-          .references("id")
-          .inTable("branches");
+        table.uuid("customer_id").notNullable();
+        table.uuid("employee_id").notNullable();
+        table.uuid("branch_id").nullable();
         table.timestamp("created_at").defaultTo(knex.fn.now());
         table.timestamp("updated_at").defaultTo(knex.fn.now());
       });
