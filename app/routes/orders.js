@@ -44,33 +44,8 @@ router.post("/", async (req, res) => {
   const missingFieldMessage = getI18nMessage(missingRequiredFields);
 
   try {
-    if (!data.email) {
-      const requiredMessage = missingFieldMessage.replace("{field}", "Email");
-      return res.status(400).send(errorResponse({ message: requiredMessage }));
-    }
-    if (!data.password) {
-      const requiredMessage = missingFieldMessage.replace(
-        "{field}",
-        "Password"
-      );
-      return res.status(400).send(errorResponse({ message: requiredMessage }));
-    }
-    const order = await db("orders").where("email", data.email).first();
-    // console.log(order);
-
-    if (order) {
-      return res.status(400).send(
-        errorResponse({
-          message: getI18nMessage(orderAlreadyExists),
-        })
-      );
-    }
-    const hash = await bcrypt.hash(data.password, 10);
-    await db("orders").insert({
-      ...data,
-      password: hash,
-    });
-    const newOrder = await db("orders").where("email", data.email).first();
+    await db("orders").insert(data);
+    const newOrder = await db("orders").where("employee_id", data.employee_id).first();
     res.status(201).send(
       successResponse({
         message: getI18nMessage(addOrderSuccess),
